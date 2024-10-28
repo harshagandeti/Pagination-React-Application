@@ -5,44 +5,46 @@ import "../Styles/Product.scss";
 const Product = () => {
   const [data, setData] = useState([]);
   const [page, SetPage] = useState(1);
-  const HandlePrevClick = () => {
-    if (page === 1) {
-      alert("You are on the first page");
-    } else {
-      page += 1;
-    }
+  const FetchData = async () => {
+    const fetchData = await fetch("https://dummyjson.com/products?limit=190");
+    const value = await fetchData.json();
+    setData(value.products);
   };
-  const HandleNextClick = () => {
-    if (page === 1) {
-      alert("You are on the first page");
-    } else {
-      page += 1;
-    }
-  };
-  const HandleSelectedPage = (i) => {
-    SetPage(i + 1);
-    console.log(page);
+  const SelectPageHandler = (selectedPage) => {
+    if (
+      selectedPage >= 1 &&
+      selectedPage <= data.length / 10 &&
+      selectedPage !== page
+    )
+      SetPage(selectedPage);
   };
   useEffect(() => {
-    fetch("https://dummyjson.com/products?limit=190")
-      .then((res) => res.json())
-      .then((value) => setData(value.products))
-      .catch((error) => console.error("Fetch error:", error));
+    FetchData();
   }, []);
-  console.log(data);
   return (
     <div className="App">
       <div className="App__Container">
         {data &&
-          data.slice(page * 10, page * 10 + 10).map((item, index) => {
+          data.slice(page * 10 - 10, page * 10).map((item, index) => {
             return (
               <div className="App__Container--Card" key={item.id}>
                 <div className="App__Container--Card--top">
+                  {/* <p> {item.id}</p> */}
+                  <div className="StockStatus__Brand">
+                    <p>
+                      <span> Brand</span>
+                      {item?.brand}
+                    </p>
+                    <span></span>
+                  </div>
                   <img src={item?.images[0]} alt={item.title}></img>
                 </div>
                 <div className="App__Container--Card--Bottom">
-                  <h3>{item.title}</h3>
-                  <p>$ {item.price}</p>
+                  <h2>{item?.title}</h2>
+                  <div className="price">
+                    <p>Price :${item?.price}</p>
+                    <span>Discount : {item?.discountPercentage}%</span>
+                  </div>
                 </div>
               </div>
             );
@@ -50,7 +52,7 @@ const Product = () => {
       </div>
       {
         <div className="App--Pagination">
-          <span onClick={HandlePrevClick} className="--Prev">
+          <span onClick={() => SelectPageHandler(page - 1)} className="--Prev">
             ◀️
           </span>
           {[...Array(data.length / 10)].map((t, index) => {
@@ -58,14 +60,14 @@ const Product = () => {
             return (
               <span
                 key={index}
-                onClick={() => HandleSelectedPage(index)}
+                onClick={() => SelectPageHandler(index + 1)}
                 className="--Page"
               >
                 {index + 1}
               </span>
             );
           })}
-          <span onClick={HandleNextClick} className="--Next">
+          <span onClick={() => SelectPageHandler(page + 1)} className="--Next">
             ▶️
           </span>
         </div>
